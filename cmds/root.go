@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"book-stack/log"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -17,8 +18,10 @@ var rootCmd = &cobra.Command{
 }
 
 func Exec() {
+	// 准备日志服务
+	log.InitLog()
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println("不可接受的错误")
+		log.Klog.Println("不可接受的错误")
 		os.Exit(1)
 	}
 }

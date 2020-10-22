@@ -1,0 +1,43 @@
+version: '3'
+services:
+  web:
+    image: nginx:alpine
+    volumes:
+      - "./docker/etc/nginx/default.conf:/etc/nginx/conf.d/default.conf"
+      - "./docker/etc/ssl:/etc/ssl"
+      - "./:/var/www/html"
+      - "./docker/etc/nginx/default.template.conf:/etc/nginx/conf.d/default.template"
+    ports:
+      - "8000:80"
+      - "3000:443"
+    environment:
+      - NGINX_HOST=${NGINX_HOST}
+    command: /bin/sh -c "envsubst '$$NGINX_HOST' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+    restart: always
+    depends_on:
+      - mysqldb
+  app:
+    image:
+    volumes:
+      - "./:/var/www/html"
+    ports:
+      - "9001:80"
+    command: /bin/sh make /var/www/html/ && /var/www/html/bs serve
+    restart: always
+    depends_on:
+      - mysqldb
+  mysqldb:
+    image: mysql:${MYSQL_VERSION}
+    container_name: ${MYSQL_HOST}
+    restart: always
+    env_file:
+      - ".env"
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "8787:3306"
+    volumes:
+      - "./docker/data/db/mysql:/var/lib/mysql"
